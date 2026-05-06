@@ -1,0 +1,299 @@
+= ITE-1: Storage of in-toto Attestations
+:source-highlighter: pygments
+:toc: preamble
+:toclevels: 2
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+.Metadata
+[cols="2"]
+|===
+| ITE
+| 0014
+
+| Title
+| Storage of in-toto Attestations
+
+| Sponsor
+| link:https://github.com/sivanahamer[Sivana Hamer]
+
+| Status
+| Active
+
+| Type
+| Informational
+
+| Created
+| yyyy-mm-dd
+
+|===
+
+
+[[abstract]]
+== Abstract
+
+An abstract of approximately 200 words describing the technical issue
+addressed.
+
+[[specification]]
+== Specification
+
+After generating an in-toto attestation, 
+
+PICTURE HERE OF WHAT CHOICES PEOPLE HAVE.
+
+> [!IMPORTANT]  
+> Depending on how the in-toto attestation is created (i.e., the specific tooling), you
+
+=== Option 1: Store the attestation besides the artifact that is being attested
+
+HIGH-LEVEL GRAPH OF WHAT IT MEANS TO STORE AN ATTESTATION BESIDES AN ARTIFACT.
+
+==== Case study: Repository Release
+
+===== Producer
+
+
+===== Consumer
+
+
+==== Case study: npm
+
+===== Producer
+
+
+===== Consumer
+
+To find an attestation for a package, you can request the artifacts for the specific version. 
+For example, to get the attestations for `pkg:npm/axios@1.15.2` you can query the following endpoint
+`https://registry.npmjs.org/-/npm/v1/attestations/axios@1.15.2`.
+
+We then get the following two attestations (`https://github.com/npm/attestation/tree/main/specs/publish/v0.1`) and (`https://slsa.dev/provenance/v1`) 
+that are stored in [Sigstore Bundles](https://docs.sigstore.dev/about/bundle/).
+
+```JSON
+{
+  "attestations": [
+    {
+      "predicateType": "https://github.com/npm/attestation/tree/main/specs/publish/v0.1",
+      "bundle": {
+        "mediaType": "application/vnd.dev.sigstore.bundle+json;version=0.2",
+        "verificationMaterial": {
+          "publicKey": {
+            "hint": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          },
+          "tlogEntries": [
+           ...
+          ],
+          "timestampVerificationData": {
+            "rfc3161Timestamps": []
+          }
+        },
+        "dsseEnvelope": {
+          "payload": "eyJfdHlwZSI6Imh0dHBzOi8vaW4tdG90by5pby9TdGF0ZW1lbnQvdjAuMSIsInN1YmplY3QiOlt7Im5hbWUiOiJwa2c6bnBtL2F4aW9zQDEuMTUuMiIsImRpZ2VzdCI6eyJzaGE1MTIiOiJjMGJhZDdjNGZiNWNhY2Y0ZWMzNjUyNjYyYTM5MGY5Y2QzY2FkODg4NWVkMjE5ZjRjMDY0OWE0YzQ4ODc0NGZjNzA4ZWYyNzA0Zjc4NGE5OTcxNzg3NjlhYjE5OGYzYmQ0YTgzNWJkODViMTg1ZTNmZjExMjhkMjAxY2RmODNlNCJ9fV0sInByZWRpY2F0ZVR5cGUiOiJodHRwczovL2dpdGh1Yi5jb20vbnBtL2F0dGVzdGF0aW9uL3RyZWUvbWFpbi9zcGVjcy9wdWJsaXNoL3YwLjEiLCJwcmVkaWNhdGUiOnsibmFtZSI6ImF4aW9zIiwidmVyc2lvbiI6IjEuMTUuMiIsInJlZ2lzdHJ5IjoiaHR0cHM6Ly9yZWdpc3RyeS5ucG1qcy5vcmcifX0=",
+          "payloadType": "application/vnd.in-toto+json",
+          "signatures": [
+            {
+              "sig": "MEQCIFvq/qudQjbNZ9oSIFDfllrm+0vO1ap7mX8gV7xbgjhwAiBbtM4aG5X4lU5WsMBTwQYsDZw+e9IWLFlnTf0b5NF5nQ==",
+              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+            }
+          ]
+        }
+      },
+      "signedAccessSignatureUrl": ""
+    },
+    {
+      "predicateType": "https://slsa.dev/provenance/v1",
+      "bundle": {
+        "mediaType": "application/vnd.dev.sigstore.bundle.v0.3+json",
+        "verificationMaterial": {
+          "certificate": {
+            "rawBytes": "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"
+          },
+          "tlogEntries": [
+            ...
+          ],
+          "timestampVerificationData": {
+            "rfc3161Timestamps": []
+          }
+        },
+        "dsseEnvelope": {
+          "payload": "eyJfdHlwZSI6Imh0dHBzOi8vaW4tdG90by5pby9TdGF0ZW1lbnQvdjEiLCJzdWJqZWN0IjpbeyJuYW1lIjoicGtnOm5wbS9heGlvc0AxLjE1LjIiLCJkaWdlc3QiOnsic2hhNTEyIjoiYzBiYWQ3YzRmYjVjYWNmNGVjMzY1MjY2MmEzOTBmOWNkM2NhZDg4ODVlZDIxOWY0YzA2NDlhNGM0ODg3NDRmYzcwOGVmMjcwNGY3ODRhOTk3MTc4NzY5YWIxOThmM2JkNGE4MzViZDg1YjE4NWUzZmYxMTI4ZDIwMWNkZjgzZTQifX1dLCJwcmVkaWNhdGVUeXBlIjoiaHR0cHM6Ly9zbHNhLmRldi9wcm92ZW5hbmNlL3YxIiwicHJlZGljYXRlIjp7ImJ1aWxkRGVmaW5pdGlvbiI6eyJidWlsZFR5cGUiOiJodHRwczovL3Nsc2EtZnJhbWV3b3JrLmdpdGh1Yi5pby9naXRodWItYWN0aW9ucy1idWlsZHR5cGVzL3dvcmtmbG93L3YxIiwiZXh0ZXJuYWxQYXJhbWV0ZXJzIjp7IndvcmtmbG93Ijp7InJlZiI6InJlZnMvdGFncy92MS4xNS4yIiwicmVwb3NpdG9yeSI6Imh0dHBzOi8vZ2l0aHViLmNvbS9heGlvcy9heGlvcyIsInBhdGgiOiIuZ2l0aHViL3dvcmtmbG93cy9wdWJsaXNoLnltbCJ9fSwiaW50ZXJuYWxQYXJhbWV0ZXJzIjp7ImdpdGh1YiI6eyJldmVudF9uYW1lIjoicHVzaCIsInJlcG9zaXRvcnlfaWQiOiIyMzA4ODc0MCIsInJlcG9zaXRvcnlfb3duZXJfaWQiOiIzMjM3MjMzMyJ9fSwicmVzb2x2ZWREZXBlbmRlbmNpZXMiOlt7InVyaSI6ImdpdCtodHRwczovL2dpdGh1Yi5jb20vYXhpb3MvYXhpb3NAcmVmcy90YWdzL3YxLjE1LjIiLCJkaWdlc3QiOnsiZ2l0Q29tbWl0IjoiNTgyOTM0MzgyZTRlMGUwYmNiNjc5YzYyODA3MWE0MjAzZTkzY2Y1NyJ9fV19LCJydW5EZXRhaWxzIjp7ImJ1aWxkZXIiOnsiaWQiOiJodHRwczovL2dpdGh1Yi5jb20vYWN0aW9ucy9ydW5uZXIvZ2l0aHViLWhvc3RlZCJ9LCJtZXRhZGF0YSI6eyJpbnZvY2F0aW9uSWQiOiJodHRwczovL2dpdGh1Yi5jb20vYXhpb3MvYXhpb3MvYWN0aW9ucy9ydW5zLzI0NzM3NzgwNjI3L2F0dGVtcHRzLzEifX19fQ==",
+          "payloadType": "application/vnd.in-toto+json",
+          "signatures": [
+            {
+              "sig": "MEQCIC1ywJw4KeZ+9Jkru1JE9CZm7JbZjGLaufYME755XKA3AiAXOY2kiAcU1WPid0FGVFz99emttlukmd7Cb/780cquDw==",
+              "keyid": ""
+            }
+          ]
+        }
+      },
+      "signedAccessSignatureUrl": ""
+    }
+  ]
+}
+```
+
+Should we talk here how you can recover the artifact for verification?
+
+=== Option 2: Store the attestation besides the artifact that is being attested
+
+==== Case study: GitHub Attestations
+
+
+Attestations generated using the GitHub Workflows: [`attest`](https://github.com/actions/attest), [`attest-build-provenance`](https://github.com/actions/attest-build-provenance), and [`attest-sbom`](https://github.com/actions/attest-sbom) are stored in `https://github.com/{ORG}/{REPOSITORY}/attestations` for each GitHub repository. For example, for homebrew\brew attestations are stored at https://github.com/Homebrew/brew/attestations.
+
+===== Producer
+
+
+===== Consumer
+
+
+==== Case study: in-toto Witness
+
+
+=== Option 3: Embed attestation within the artifact
+
+I have not seen this ever and could not find the video mentioned.
+
+
+=== Option 4: Do no store the attestation
+
+
+==== Case study: Example
+
+===== Producer
+
+
+===== Consumer
+
+
+=== Implications
+
+==== Storage considerations
+
+===== Discoverability
+
+Discovering attestations has two main considerations:
+The discoverability of where the attestations are stored.
+
+
+The discoverability of the artifacts attested to in the attestation.
+
+
+
+
+Besides artifacts
+Databases
+Discoverability: in-toto payload
+Direct
+Direct
+Discoverability:
+in-toto artifact
+Direct
+Heuristics
+
+
+
+===== Data persistence
+
+How long-lived are the artifacts?
+- in-toto payload
+- in-toto artifacts
+- in-toto references within the artifact
+
+===== Public versus private data
+
+===== Frequency and size (Efficacy? Efficiency?)
+
+
+=== Consumers
+
+==== Consumption use cases
+
+Immediately before consumption
+
+
+==== Consumption considerations 
+
+===== Multiple storage mechanisms
+
+A dependency producing in-toto attestations may use multiple storage mechanisms to store data within in-toto. Additionally, different in-toto predicates may store data across different steps within the software supply chain.
+
+An example of such a project is,
+
+Need to find an example project that is good for a particular version.
+
+As such, consumers of in-toto attestations 
+
+===== Duplication
+
+The same attestation may be stored in 
+
+===== Segmented data
+
+Depending on the storage mechanism, the data stored within the attestation may be segmented across different ecosystems. For example, 
+
+===== Normalization
+
+Data within in-toto is stored in different formats.  
+
+
+[[motivation]]
+== Motivation
+
+Here, describe the rationale behind the changes you are proposing.
+
+[[reasoning]]
+== Reasoning
+
+Here, describe why the decisions you made in the specification make sense.
+
+[[backwards-compatibility]]
+== Backwards Compatibility
+
+The current information described in this ITE does not affect or extend in-toto layouts. 
+Still, we do outline considerations to take into account when designing in-toto storage for producers. 
+Consumers also benefit from standardization, for more standardized consumption and implications when
+selecting storage mechanisms.
+
+
+[[security]]
+== Security
+
+Provide a security analysis of these changes including the threat model
+considered (and how it differs from the existing threat model for in-toto).
+Mention the security impact of adding these changes to in-toto.
+
+[[infrastructure-requirements]]
+== Infrastructure Requirements
+
+If your changes require additional infrastructure, describe it here. Include
+potential costs incurred considering both time and money.
+
+[[testing]]
+== Testing
+
+If your implementation includes code, include this section describing how your
+changes will be tested.
+
+[[prototype-implementation]]
+== Prototype Implementation
+
+If your ITE includes code changes, provide some links to the prototype
+implementation of these changes.
+
+[[references]]
+== References
+
+=== example references
+
+* Link to storage mechanisms in in-toto friends.
+* Link to my paper when it exists.
+* Talks from Zach that explains a lot of stuff from my other doc.
+* https://repos.openssf.org/build-provenance-for-all-package-registries
