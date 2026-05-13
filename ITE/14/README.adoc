@@ -64,10 +64,35 @@ HIGH-LEVEL GRAPH OF WHAT IT MEANS TO STORE AN ATTESTATION BESIDES AN ARTIFACT.
 
 ==== Case study: npm
 
-===== Producer
+===== Producer/Signer
 
+Many ways exist to produce and store attestations within npm.
+For example, if within a GitHub Workflow, the development team gives a GitHub Workflow a write token, run the workflow on a GitHub hosted runner, and publiblish the package with the ``--provenance`` field. 
+Such a workflow would look as follows:
 
-===== Consumer
+```
+name: Publish Package to npmjs
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+...
+      - run: npm publish --provenance
+```
+
+The package when published then creates a [SLSA build provenance](https://slsa.dev/spec/v1.2/build-provenance) attestation that describes how the software was built. 
+In this case, what the attestation would attest to would be how the npm package was built through a GitHub Workflow (the one previously defined) in a specific repository.
+Each attestation that is created would be signed through [Sigstore Rekor](https://docs.sigstore.dev/logging/overview/) signed by the OIDC issuer (https://token.actions.githubusercontent.com) creating an X.509 certificate.
+The certificate then contains the data specific within the [Sigstore OID](https://github.com/sigstore/fulcio/blob/main/docs/oid-info.md) documentation.
+Each attestation with the certificate is stored as a [Sigstore Bundle](https://docs.sigstore.dev/about/bundle/) besides the artifact that is being attested to.
+
+===== Consumer/Verifier
 
 To find an attestation for a package, you can request the artifacts for the specific version. 
 For example, to get the attestations for `pkg:npm/axios@1.15.2` you can query the following endpoint
@@ -79,34 +104,7 @@ that are stored in [Sigstore Bundles](https://docs.sigstore.dev/about/bundle/).
 ```JSON
 {
   "attestations": [
-    {
-      "predicateType": "https://github.com/npm/attestation/tree/main/specs/publish/v0.1",
-      "bundle": {
-        "mediaType": "application/vnd.dev.sigstore.bundle+json;version=0.2",
-        "verificationMaterial": {
-          "publicKey": {
-            "hint": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
-          },
-          "tlogEntries": [
-           ...
-          ],
-          "timestampVerificationData": {
-            "rfc3161Timestamps": []
-          }
-        },
-        "dsseEnvelope": {
-          "payload": "eyJfdHlwZSI6Imh0dHBzOi8vaW4tdG90by5pby9TdGF0ZW1lbnQvdjAuMSIsInN1YmplY3QiOlt7Im5hbWUiOiJwa2c6bnBtL2F4aW9zQDEuMTUuMiIsImRpZ2VzdCI6eyJzaGE1MTIiOiJjMGJhZDdjNGZiNWNhY2Y0ZWMzNjUyNjYyYTM5MGY5Y2QzY2FkODg4NWVkMjE5ZjRjMDY0OWE0YzQ4ODc0NGZjNzA4ZWYyNzA0Zjc4NGE5OTcxNzg3NjlhYjE5OGYzYmQ0YTgzNWJkODViMTg1ZTNmZjExMjhkMjAxY2RmODNlNCJ9fV0sInByZWRpY2F0ZVR5cGUiOiJodHRwczovL2dpdGh1Yi5jb20vbnBtL2F0dGVzdGF0aW9uL3RyZWUvbWFpbi9zcGVjcy9wdWJsaXNoL3YwLjEiLCJwcmVkaWNhdGUiOnsibmFtZSI6ImF4aW9zIiwidmVyc2lvbiI6IjEuMTUuMiIsInJlZ2lzdHJ5IjoiaHR0cHM6Ly9yZWdpc3RyeS5ucG1qcy5vcmcifX0=",
-          "payloadType": "application/vnd.in-toto+json",
-          "signatures": [
-            {
-              "sig": "MEQCIFvq/qudQjbNZ9oSIFDfllrm+0vO1ap7mX8gV7xbgjhwAiBbtM4aG5X4lU5WsMBTwQYsDZw+e9IWLFlnTf0b5NF5nQ==",
-              "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
-            }
-          ]
-        }
-      },
-      "signedAccessSignatureUrl": ""
-    },
+    ...
     {
       "predicateType": "https://slsa.dev/provenance/v1",
       "bundle": {
@@ -139,9 +137,8 @@ that are stored in [Sigstore Bundles](https://docs.sigstore.dev/about/bundle/).
 }
 ```
 
-Should we talk here how you can recover the artifact for verification?
 
-=== Option 2: Store the attestation besides the artifact that is being attested
+=== Option 2: Storage in a database
 
 ==== Case study: GitHub Attestations
 
@@ -161,6 +158,10 @@ Attestations generated using the GitHub Workflows: [`attest`](https://github.com
 
 I have not seen this ever and could not find the video mentioned.
 
+Summary attestations, not build attestations. 
+
+
+
 
 === Option 4: Do no store the attestation
 
@@ -175,15 +176,24 @@ I have not seen this ever and could not find the video mentioned.
 
 === Implications
 
+NEXT WEEK HOMEWORK MAP THESE AND DO STUFF
+
+Persona, what should they do: npm, consumers of Ruby Gems.
+
 ==== Storage considerations
+
+|                               	| Option 1: Store besides 	| Option 2: Store database 	| Option 3: Store embedded 	| Option 4: Not store 	|
+|:-----------------------------:	|-------------------------	|--------------------------	|--------------------------	|---------------------	|
+| Discoverability: Attestations 	| ✅                       	| ⚠️                        	|                          	| ❌                   	|
+| Discoverability: Data         	| ⚠️                        	| ⚠️                        	|                          	| ❌                   	|
+
+
+ ✅ = Deals with the consideration, ⚠️ = May deal with the consideration, ❌  = Does not deal with the consideration.
 
 ===== Discoverability
 
-Discovering attestations has two main considerations:
-The discoverability of where the attestations are stored.
-
-
-The discoverability of the artifacts attested to in the attestation.
+Discoverability is defined of how easy is the information to find.
+Specifically, a storage consideration is how easy: 1) the attestation is to find given an artifact and 2) the data of the attestation is to find.
 
 
 
@@ -244,6 +254,11 @@ Depending on the storage mechanism, the data stored within the attestation may b
 Data within in-toto is stored in different formats.  
 
 
+===== Notes
+
+- SLSA Verifier -> properties of the certificates, attestations
+
+
 [[motivation]]
 == Motivation
 
@@ -297,3 +312,4 @@ implementation of these changes.
 * Link to my paper when it exists.
 * Talks from Zach that explains a lot of stuff from my other doc.
 * https://repos.openssf.org/build-provenance-for-all-package-registries
+* https://github.com/sigstore/cosign/issues/3599
