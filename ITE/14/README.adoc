@@ -163,7 +163,7 @@ Summary attestations, not build attestations.
 
 
 
-=== Option 4: Do no store the attestation
+=== Option 4: Do not store the attestation
 
 
 ==== Case study: Example
